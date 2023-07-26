@@ -48,7 +48,7 @@ func runCases(ctx context.Context, pubsubService pubsub.Pubsub) {
 		panic(err)
 	}
 
-	err = pubsubService.Publish(ctx, "topic4", "hello1")
+	err = pubsubService.Publish(ctx, "topic1", "hello1")
 	if err != nil {
 		println(err.Error())
 	}

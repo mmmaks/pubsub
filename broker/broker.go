@@ -65,16 +65,28 @@ func (b *broker) Subscribe(ctx context.Context, subName, topic string, callback 
 
 func (b *broker) listenAndBroadcast(topicName string) error {
 
+	var topic topics.Topic
+	var subs []subscribers.Subscriber
+
 	go func() {
 		for {
-			select {
-			case msg := <-b.topics[topicName].Data():
-				for _, sub := range b.subscribers[topicName] {
-					sub.Msg() <- msg
+			func() {
+				defer b.synchronise()()
+				topic = b.topics[topicName]
+				subs = b.subscribers[topicName]
+			}()
+
+			func() {
+				select {
+				case msg := <-topic.Data():
+					for _, sub := range subs {
+						// run regex on msg
+						sub.Msg() <- msg
+					}
+				case <-b.ctx.Done():
+					return
 				}
-			case <-b.ctx.Done():
-				return
-			}
+			}()
 		}
 	}()
 
